@@ -29,7 +29,28 @@ export function AddExpenseModal({ onClose, onSubmit }) {
                 description: description || null
             });
         } catch (err) {
-            setError('Error al guardar el gasto');
+            // Intentar parsear el mensaje de error del backend
+            try {
+                const errorData = JSON.parse(err.message);
+                if (errorData.amount) {
+                    // Error de validación del monto
+                    setError(Array.isArray(errorData.amount) ? errorData.amount[0] : errorData.amount);
+                } else if (errorData.category) {
+                    setError(Array.isArray(errorData.category) ? errorData.category[0] : errorData.category);
+                } else if (errorData.error) {
+                    // Error genérico del backend
+                    setError(errorData.error);
+                } else if (errorData.detail) {
+                    setError(errorData.detail);
+                } else {
+                    // Mostrar el primer error encontrado
+                    const firstError = Object.values(errorData)[0];
+                    setError(Array.isArray(firstError) ? firstError[0] : String(firstError));
+                }
+            } catch {
+                // Si no se puede parsear, mostrar mensaje genérico
+                setError('Error al guardar el gasto. Verifica los datos e intenta nuevamente.');
+            }
         } finally {
             setLoading(false);
         }
