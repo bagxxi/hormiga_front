@@ -14,9 +14,10 @@ const CATEGORY_ICONS = {
 export function History() {
     const [expenses, setExpenses] = useState([]);
     const [history, setHistory] = useState([]);
+    const [savings, setSavings] = useState(null);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
-    const { getExpenses, getHistory, downloadHistoryPDF, deleteExpense } = useApi();
+    const { getExpenses, getHistory, downloadHistoryPDF, deleteExpense, getTotalSavings } = useApi();
 
     useEffect(() => {
         loadData();
@@ -24,12 +25,14 @@ export function History() {
 
     const loadData = async () => {
         try {
-            const [expensesData, historyData] = await Promise.all([
+            const [expensesData, historyData, savingsData] = await Promise.all([
                 getExpenses(),
-                getHistory()
+                getHistory(),
+                getTotalSavings()
             ]);
             setExpenses(expensesData);
             setHistory(historyData);
+            setSavings(savingsData);
         } catch (error) {
             console.error('Error loading data:', error);
         } finally {
@@ -98,8 +101,33 @@ export function History() {
         <>
             <h1 style={{ marginBottom: '24px' }}>Historial</h1>
 
+            {/* Mi Chanchito - Ahorro Total */}
+            {savings && (
+                <div className="card" style={{
+                    background: 'linear-gradient(135deg, #10b981, #059669)',
+                    color: 'white',
+                    marginBottom: '24px'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                        <span style={{ fontSize: '2rem' }}>🐷</span>
+                        <h3 style={{ margin: 0 }}>Mi Chanchito</h3>
+                    </div>
+                    <div style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '8px' }}>
+                        {formatCurrency(savings.accumulated_amount || 0)}
+                    </div>
+                    <p style={{ opacity: 0.9, margin: 0, fontSize: '0.875rem' }}>
+                        Ahorro total acumulado
+                    </p>
+                    {savings.savings_goal_current > 0 && (
+                        <p style={{ opacity: 0.7, margin: '8px 0 0', fontSize: '0.75rem' }}>
+                            Meta mensual actual: {formatCurrency(savings.savings_goal_current)}
+                        </p>
+                    )}
+                </div>
+            )}
+
             {/* Tabs */}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
                 <button
                     className={`btn ${filter === 'all' ? 'btn-primary' : 'btn-secondary'}`}
                     onClick={() => setFilter('all')}
@@ -221,6 +249,30 @@ export function History() {
                                                 {formatCurrency(period.remaining)}
                                             </p>
                                         </div>
+                                    </div>
+
+                                    {/* Ahorro del período */}
+                                    <div style={{
+                                        marginTop: '16px',
+                                        padding: '12px',
+                                        background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1))',
+                                        borderRadius: '8px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between'
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <span>🐷</span>
+                                            <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                                Ahorro del período
+                                            </span>
+                                        </div>
+                                        <span style={{
+                                            fontWeight: 700,
+                                            color: period.saved_amount > 0 ? '#10b981' : 'var(--text-secondary)'
+                                        }}>
+                                            {formatCurrency(period.saved_amount || 0)}
+                                        </span>
                                     </div>
                                 </div>
                             ))}

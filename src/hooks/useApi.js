@@ -99,6 +99,12 @@ export function useApi() {
         return response.blob();
     };
 
+    // Savings
+    const getTotalSavings = async () => {
+        const response = await fetchWithAuth('/finance/savings/');
+        return response.json();
+    };
+
     return {
         getBudget,
         updateBudget,
@@ -110,5 +116,7 @@ export function useApi() {
         deleteFixedExpense,
         getHistory,
         downloadHistoryPDF,
+        getTotalSavings,
     };
 }
+
