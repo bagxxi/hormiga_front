@@ -23,7 +23,10 @@ export function Profile() {
     // Email change form
     const [showEmailForm, setShowEmailForm] = useState(false);
     const [newEmail, setNewEmail] = useState('');
+    const [emailPassword, setEmailPassword] = useState('');
     const [emailMessage, setEmailMessage] = useState('');
+    const [emailError, setEmailError] = useState('');
+    const [emailLoading, setEmailLoading] = useState(false);
 
     // Session timer effect
     useEffect(() => {
@@ -142,15 +145,58 @@ export function Profile() {
 
     const handleEmailChange = async (e) => {
         e.preventDefault();
+        setEmailMessage('');
+        setEmailError('');
 
         if (!newEmail.includes('@')) {
-            setEmailMessage('Ingresa un email válido');
+            setEmailError('Ingresa un email válido');
             return;
         }
 
-        // TODO: Implementar envío de email de confirmación
-        setEmailMessage('Se ha enviado un enlace de confirmación a ' + newEmail);
-        setNewEmail('');
+        if (!emailPassword) {
+            setEmailError('Debes ingresar tu contraseña');
+            return;
+        }
+
+        setEmailLoading(true);
+
+        try {
+            const response = await fetch(`${API_URL}/auth/email-change/request/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    new_email: newEmail,
+                    password: emailPassword
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                if (data.new_email) {
+                    setEmailError(Array.isArray(data.new_email) ? data.new_email[0] : data.new_email);
+                } else if (data.password) {
+                    setEmailError(Array.isArray(data.password) ? data.password[0] : data.password);
+                } else if (data.error) {
+                    setEmailError(data.error);
+                } else {
+                    setEmailError('Error al solicitar cambio de email');
+                }
+                return;
+            }
+
+            setEmailMessage(data.message);
+            setNewEmail('');
+            setEmailPassword('');
+            setShowEmailForm(false);
+        } catch (err) {
+            setEmailError('Error de conexión. Intenta nuevamente.');
+        } finally {
+            setEmailLoading(false);
+        }
     };
 
     // Show loading if no user data
@@ -315,11 +361,26 @@ export function Profile() {
                         onClick={() => {
                             setShowEmailForm(!showEmailForm);
                             setEmailMessage('');
+                            setEmailError('');
+                            setEmailPassword('');
                         }}
                     >
                         {showEmailForm ? 'Cancelar' : 'Cambiar'}
                     </button>
                 </div>
+
+                {emailMessage && !showEmailForm && (
+                    <p style={{
+                        color: 'var(--balance-positive)',
+                        fontSize: '0.875rem',
+                        marginTop: '12px',
+                        padding: '12px',
+                        background: 'rgba(16, 185, 129, 0.1)',
+                        borderRadius: '8px'
+                    }}>
+                        ✅ {emailMessage}
+                    </p>
+                )}
 
                 {showEmailForm && (
                     <form onSubmit={handleEmailChange} style={{
@@ -340,6 +401,18 @@ export function Profile() {
                             />
                         </div>
 
+                        <div className="form-group">
+                            <label className="form-label">Contraseña actual</label>
+                            <input
+                                type="password"
+                                className="form-input"
+                                placeholder="••••••••"
+                                value={emailPassword}
+                                onChange={(e) => setEmailPassword(e.target.value)}
+                                required
+                            />
+                        </div>
+
                         <p style={{
                             fontSize: '0.75rem',
                             color: 'var(--text-secondary)',
@@ -349,21 +422,26 @@ export function Profile() {
                             borderRadius: '6px',
                             border: '1px solid var(--border-light)'
                         }}>
-                            📧 Se enviará un enlace de confirmación a tu nuevo correo electrónico para verificar el cambio.
+                            📧 Se enviará un enlace de confirmación a tu correo ACTUAL para verificar el cambio.
                         </p>
 
-                        {emailMessage && (
+                        {emailError && (
                             <p style={{
-                                color: emailMessage.includes('enviado') ? 'var(--balance-positive)' : 'var(--balance-negative)',
+                                color: 'var(--balance-negative)',
                                 marginBottom: '12px',
                                 fontSize: '0.875rem'
                             }}>
-                                {emailMessage}
+                                {emailError}
                             </p>
                         )}
 
-                        <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
-                            Enviar enlace de confirmación
+                        <button
+                            type="submit"
+                            className="btn btn-primary"
+                            style={{ width: '100%' }}
+                            disabled={emailLoading}
+                        >
+                            {emailLoading ? 'Enviando...' : 'Enviar enlace de confirmación'}
                         </button>
                     </form>
                 )}

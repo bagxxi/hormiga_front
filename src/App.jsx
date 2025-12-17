@@ -7,6 +7,9 @@ import { History } from './pages/History';
 import { Budget } from './pages/Budget';
 import { Profile } from './pages/Profile';
 import { SharedExpenses } from './pages/SharedExpenses';
+import { ForgotPassword } from './pages/ForgotPassword';
+import { ResetPassword } from './pages/ResetPassword';
+import { ConfirmEmail } from './pages/ConfirmEmail';
 import './index.css';
 
 function PrivateRoute({ children }) {
@@ -55,6 +58,15 @@ function AppRoutes() {
           <Login />
         </PublicRoute>
       } />
+      <Route path="/forgot-password" element={
+        <PublicRoute>
+          <ForgotPassword />
+        </PublicRoute>
+      } />
+      {/* Rutas públicas para verificación por email */}
+      <Route path="/reset-password/:token" element={<ResetPassword />} />
+      <Route path="/confirm-email/:token" element={<ConfirmEmail />} />
+
       <Route element={
         <PrivateRoute>
           <Layout />

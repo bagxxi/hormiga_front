@@ -119,6 +119,21 @@ export function Login() {
                         {loading ? 'Procesando...' : (isLogin ? 'Iniciar sesión' : 'Crear cuenta')}
                     </button>
 
+                    {isLogin && (
+                        <p style={{ textAlign: 'center', marginBottom: '16px' }}>
+                            <Link
+                                to="/forgot-password"
+                                style={{
+                                    color: 'var(--text-secondary)',
+                                    fontSize: '0.875rem',
+                                    textDecoration: 'none'
+                                }}
+                            >
+                                ¿Olvidaste tu contraseña?
+                            </Link>
+                        </p>
+                    )}
+
                     <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
                         {isLogin ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}{' '}
                         <button
