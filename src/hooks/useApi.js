@@ -105,6 +105,21 @@ export function useApi() {
         return response.json();
     };
 
+    // Onboarding
+    const completeOnboarding = async () => {
+        const response = await fetchWithAuth('/auth/onboarding/complete/', {
+            method: 'POST',
+        });
+        return response.json();
+    };
+
+    const resetOnboarding = async () => {
+        const response = await fetchWithAuth('/auth/onboarding/reset/', {
+            method: 'POST',
+        });
+        return response.json();
+    };
+
     return {
         getBudget,
         updateBudget,
@@ -117,6 +132,8 @@ export function useApi() {
         getHistory,
         downloadHistoryPDF,
         getTotalSavings,
+        completeOnboarding,
+        resetOnboarding,
     };
 }
 

@@ -87,20 +87,36 @@ export function Home() {
         );
     }
 
+    // Verificar si el presupuesto está configurado (monthly_income > 0)
+    const isBudgetConfigured = budget && budget.monthly_income > 0;
     const availableMoney = budget?.available_money || 0;
 
     return (
         <>
-            {/* Balance Card */}
-            <div className="card balance-card">
-                <p className="balance-label">Saldo disponible para gastos</p>
-                <p className={`balance-amount ${getBalanceStatus(availableMoney)}`}>
-                    {formatCurrency(availableMoney)}
-                </p>
-                <p className="balance-subtitle">
-                    De {formatCurrency(budget?.monthly_income || 0)} de ingreso mensual
-                </p>
-            </div>
+            {/* Banner de configuración de presupuesto */}
+            {!isBudgetConfigured && (
+                <div className="setup-banner card">
+                    <div className="setup-banner-icon">📋</div>
+                    <h3>¡Configura tu presupuesto!</h3>
+                    <p>Para comenzar a registrar tus gastos hormiga, primero debes configurar tu ingreso mensual y meta de ahorro.</p>
+                    <Link to="/presupuesto" className="btn btn-primary" style={{ marginTop: '16px' }}>
+                        Configurar presupuesto
+                    </Link>
+                </div>
+            )}
+
+            {/* Balance Card - Solo mostrar si hay presupuesto configurado */}
+            {isBudgetConfigured && (
+                <div className="card balance-card">
+                    <p className="balance-label">Saldo disponible para gastos</p>
+                    <p className={`balance-amount ${getBalanceStatus(availableMoney)}`}>
+                        {formatCurrency(availableMoney)}
+                    </p>
+                    <p className="balance-subtitle">
+                        De {formatCurrency(budget?.monthly_income || 0)} de ingreso mensual
+                    </p>
+                </div>
+            )}
 
             {/* Recent Expenses */}
             <section>
@@ -116,7 +132,7 @@ export function Home() {
                             <line x1="1" y1="10" x2="23" y2="10" />
                         </svg>
                         <p>No hay gastos registrados</p>
-                        <p>¡Registra tu primer gasto hormiga!</p>
+                        <p>{isBudgetConfigured ? '¡Registra tu primer gasto hormiga!' : 'Configura tu presupuesto para comenzar'}</p>
                     </div>
                 ) : (
                     <div className="expense-list">
@@ -138,13 +154,15 @@ export function Home() {
                 )}
             </section>
 
-            {/* FAB Button */}
-            <button className="fab" onClick={() => setShowModal(true)} title="Añadir gasto">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-            </button>
+            {/* FAB Button - Solo mostrar si hay presupuesto configurado */}
+            {isBudgetConfigured && (
+                <button className="fab" onClick={() => setShowModal(true)} title="Añadir gasto">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                </button>
+            )}
 
             {/* Add Expense Modal */}
             {showModal && (

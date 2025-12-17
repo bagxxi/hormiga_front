@@ -113,13 +113,24 @@ export function AddExpenseModal({ onClose, onSubmit }) {
                     </div>
 
                     <div className="form-group">
-                        <label className="form-label">Descripción (opcional)</label>
+                        <label className="form-label">
+                            Descripción (opcional)
+                            <span style={{
+                                float: 'right',
+                                fontSize: '0.75rem',
+                                color: description.length >= 25 ? 'var(--balance-warning)' : 'var(--text-secondary)',
+                                fontWeight: description.length >= 30 ? '600' : '400'
+                            }}>
+                                {description.length}/30
+                            </span>
+                        </label>
                         <input
                             type="text"
                             className="form-input"
                             placeholder="Ej: Café en Starbucks"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
+                            maxLength={30}
                         />
                     </div>
 

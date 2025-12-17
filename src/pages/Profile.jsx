@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useApi } from '../hooks/useApi';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://hormigapp.onrender.com/api';
 
 export function Profile() {
     const { user, token, logout } = useAuth();
     const navigate = useNavigate();
+    const { resetOnboarding } = useApi();
 
     // Session timer
     const [sessionTime, setSessionTime] = useState(0);
@@ -469,6 +471,30 @@ export function Profile() {
                     </div>
                 </div>
             </div>
+
+            {/* View Tour Button */}
+            <button
+                onClick={async () => {
+                    await resetOnboarding();
+                    window.location.reload();
+                }}
+                className="btn btn-secondary"
+                style={{
+                    width: '100%',
+                    padding: '12px',
+                    marginBottom: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}
+            >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '8px' }}>
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+                Ver tour de bienvenida
+            </button>
 
             {/* Logout Button */}
             <button
