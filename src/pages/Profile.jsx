@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
+const API_URL = import.meta.env.VITE_API_URL || 'https://hormigapp.onrender.com/api';
+
 export function Profile() {
-    const { user, logout } = useAuth();
+    const { user, token, logout } = useAuth();
     const navigate = useNavigate();
 
     // Session timer
@@ -16,6 +18,7 @@ export function Profile() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [passwordError, setPasswordError] = useState('');
     const [passwordSuccess, setPasswordSuccess] = useState('');
+    const [passwordLoading, setPasswordLoading] = useState(false);
 
     // Email change form
     const [showEmailForm, setShowEmailForm] = useState(false);
@@ -81,13 +84,60 @@ export function Profile() {
             return;
         }
 
-        // TODO: Implementar llamada a API para cambiar contraseña
-        // Por ahora solo mostramos mensaje de éxito simulado
-        setPasswordSuccess('Contraseña actualizada correctamente');
-        setCurrentPassword('');
-        setNewPassword('');
-        setConfirmPassword('');
-        setShowPasswordForm(false);
+        if (!currentPassword) {
+            setPasswordError('Debes ingresar tu contraseña actual');
+            return;
+        }
+
+        setPasswordLoading(true);
+
+        try {
+            const response = await fetch(`${API_URL}/auth/me/`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    current_password: currentPassword,
+                    password: newPassword,
+                    password_confirm: confirmPassword
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                // Manejar errores específicos del backend
+                if (errorData.current_password) {
+                    setPasswordError(Array.isArray(errorData.current_password)
+                        ? errorData.current_password[0]
+                        : errorData.current_password);
+                } else if (errorData.password_confirm) {
+                    setPasswordError(Array.isArray(errorData.password_confirm)
+                        ? errorData.password_confirm[0]
+                        : errorData.password_confirm);
+                } else if (errorData.password) {
+                    setPasswordError(Array.isArray(errorData.password)
+                        ? errorData.password[0]
+                        : errorData.password);
+                } else if (errorData.detail) {
+                    setPasswordError(errorData.detail);
+                } else {
+                    setPasswordError('Error al cambiar la contraseña');
+                }
+                return;
+            }
+
+            setPasswordSuccess('Contraseña actualizada correctamente');
+            setCurrentPassword('');
+            setNewPassword('');
+            setConfirmPassword('');
+            setShowPasswordForm(false);
+        } catch (err) {
+            setPasswordError('Error de conexión. Intenta nuevamente.');
+        } finally {
+            setPasswordLoading(false);
+        }
     };
 
     const handleEmailChange = async (e) => {
@@ -239,8 +289,13 @@ export function Profile() {
                             </p>
                         )}
 
-                        <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
-                            Guardar contraseña
+                        <button
+                            type="submit"
+                            className="btn btn-primary"
+                            style={{ width: '100%' }}
+                            disabled={passwordLoading}
+                        >
+                            {passwordLoading ? 'Guardando...' : 'Guardar contraseña'}
                         </button>
                     </form>
                 )}
